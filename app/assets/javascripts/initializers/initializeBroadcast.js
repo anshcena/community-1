@@ -87,6 +87,10 @@ function renderBroadcast(broadcastElement, data) {
  * @function initializeBroadcast
  */
 function initializeBroadcast() {
+  if (window.location.pathname === '/new') {
+    return;
+  }
+
   const data = broadcastData();
   if (!data) {
     return;

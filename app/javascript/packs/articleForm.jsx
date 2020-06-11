@@ -11,6 +11,10 @@ HTMLDocument.prototype.ready = new Promise((resolve) => {
 });
 
 function loadForm() {
+  if (document.getElementById('active-broadcast')) {
+    document.getElementById('active-broadcast').style.display = 'none';
+  }
+
   getUserDataAndCsrfToken().then(({ currentUser, csrfToken }) => {
     window.currentUser = currentUser;
     window.csrfToken = csrfToken;
