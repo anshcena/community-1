@@ -1,4 +1,5 @@
-import { h, Component } from 'preact';
+import { h } from 'preact';
+import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import PropTypes from 'prop-types';
 import {
   Button,
@@ -15,50 +16,48 @@ export const COMMENT_SUBSCRIPTION_TYPE = Object.freeze({
   NOT_SUBSCRIBED: 'not_subscribed',
 });
 
-export class CommentSubscription extends Component {
-  constructor(props) {
-    const { subscriptionType } = props;
-    super(props);
+const CogIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    role="img"
+    aria-labelledby="ai2ols8ka2ohfp0z568lj68ic2du21s"
+    className="crayons-icon"
+  >
+    <title id="ai2ols8ka2ohfp0z568lj68ic2du21s">Preferences</title>
+    <path d="M12 1l9.5 5.5v11L12 23l-9.5-5.5v-11L12 1zm0 2.311L4.5 7.653v8.694l7.5 4.342 7.5-4.342V7.653L12 3.311zM12 16a4 4 0 110-8 4 4 0 010 8zm0-2a2 2 0 100-4 2 2 0 000 4z" />
+  </svg>
+);
 
-    const subscribed =
-      subscriptionType &&
-      (subscriptionType.length > 0 && subscriptionType) !==
-        COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED;
-
-    const initialState = {
-      subscriptionType: subscribed
-        ? subscriptionType
-        : COMMENT_SUBSCRIPTION_TYPE.ALL,
+export function CommentSubscription({
+  positionType = 'relative',
+  onSubscribe,
+  onUnsubscribe,
+  subscriptionType,
+}) {
+  function commentSubscriptionClick(event) {
+    setState({
       subscribed,
-      showOptions: false,
-    };
-
-    this.state = initialState;
+      showOptions,
+      subscriptionType: event.target.value,
+    });
   }
 
-  componentDidUpdate() {
-    const { showOptions } = this.state;
+  function dropdownPlacementHandler() {
+    const { current } = dropdownRef;
 
-    if (showOptions) {
-      window.addEventListener('scroll', this.dropdownPlacementHandler);
-      this.dropdownPlacementHandler();
-    } else {
-      window.removeEventListener('scroll', this.dropdownPlacementHandler);
+    if (current === null) {
+      return;
     }
-  }
 
-  componentWillUnmount() {
-    window.removeEventListener('scroll', this.dropdownPlacementHandler);
-  }
-
-  dropdownPlacementHandler = () => {
-    const { base: element } = this.dropdownElement;
+    const { base: element } = current;
 
     // Reset the top before doing any calculations
     element.style.bottom = '';
 
     const { bottom: dropDownBottom } = element.getBoundingClientRect();
-    const { height } = this.buttonGroupElement.base.getBoundingClientRect();
+    const { height } = buttonGroupRef.current.base.getBoundingClientRect();
 
     if (
       Math.sign(dropDownBottom) === -1 ||
@@ -67,164 +66,188 @@ export class CommentSubscription extends Component {
       // The 4 pixels is the box shadow from the drop down.
       element.style.bottom = `${height + 4}px`;
     }
+  }
+
+  const initialSubscribe =
+    subscriptionType &&
+    (subscriptionType.length > 0 && subscriptionType) !==
+      COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED;
+
+  const initialState = {
+    subscriptionType: subscribed
+      ? subscriptionType
+      : COMMENT_SUBSCRIPTION_TYPE.ALL,
+    subscribed: initialSubscribe,
+    showOptions: false,
   };
 
-  commentSubscriptionClick = (event) => {
-    this.setState({
-      subscriptionType: event.target.value,
-    });
-  };
+  const [state, setState] = useState(initialState);
+  const {
+    showOptions,
+    subscriptionType: changedSubscriptionType,
+    subscribed,
+  } = state;
 
-  render() {
-    const { showOptions, subscriptionType, subscribed } = this.state;
-    const {
-      onSubscribe,
-      onUnsubscribe,
-      positionType = 'relative',
-    } = this.props;
+  const buttonGroupRef = useRef(null);
+  const buttonGroupRefCallback = useCallback((element) => {
+    buttonGroupRef.current = element;
+  }, []);
 
-    const CogIcon = () => (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        role="img"
-        aria-labelledby="ai2ols8ka2ohfp0z568lj68ic2du21s"
-        className="crayons-icon"
-      >
-        <title id="ai2ols8ka2ohfp0z568lj68ic2du21s">Preferences</title>
-        <path d="M12 1l9.5 5.5v11L12 23l-9.5-5.5v-11L12 1zm0 2.311L4.5 7.653v8.694l7.5 4.342 7.5-4.342V7.653L12 3.311zM12 16a4 4 0 110-8 4 4 0 010 8zm0-2a2 2 0 100-4 2 2 0 000 4z" />
-      </svg>
-    );
+  const dropdownRef = useRef(null);
+  const dropdownRefCallback = useCallback((element) => {
+    dropdownRef.current = element;
+  }, []);
 
-    return (
-      <div className={positionType}>
-        <ButtonGroup
-          ref={(element) => {
-            this.buttonGroupElement = element;
+  useEffect(() => {
+    if (showOptions) {
+      window.addEventListener('scroll', dropdownPlacementHandler);
+      dropdownPlacementHandler();
+    } else {
+      window.removeEventListener('scroll', dropdownPlacementHandler);
+    }
+
+    return () => {
+      window.removeEventListener('scroll', dropdownPlacementHandler);
+    };
+  }, [showOptions, subscribed, changedSubscriptionType]);
+
+  return (
+    <div className={positionType}>
+      <ButtonGroup ref={buttonGroupRefCallback}>
+        <Button
+          variant="outlined"
+          onClick={(_event) => {
+            if (subscribed) {
+              onUnsubscribe(COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED);
+              setState({
+                showOptions,
+                subscribed,
+                subscriptionType: COMMENT_SUBSCRIPTION_TYPE.ALL,
+              });
+            } else {
+              onSubscribe(changedSubscriptionType);
+            }
+
+            setState({
+              showOptions,
+              subscribed: !subscribed,
+              subscriptionType: changedSubscriptionType,
+            });
           }}
         >
-          <Button
-            variant="outlined"
-            onClick={(_event) => {
-              if (subscribed) {
-                onUnsubscribe(COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED);
-                this.setState({
-                  subscriptionType: COMMENT_SUBSCRIPTION_TYPE.ALL,
-                });
-              } else {
-                onSubscribe(subscriptionType);
-              }
-
-              this.setState({ subscribed: !subscribed });
-            }}
-          >
-            {subscribed ? 'Unsubscribe' : 'Subscribe'}
-          </Button>
-          {subscribed && (
-            <Button
-              data-testid="subscription-settings"
-              variant="outlined"
-              icon={CogIcon}
-              contentType="icon"
-              onClick={(_event) => {
-                this.setState({ showOptions: !showOptions });
-              }}
-            />
-          )}
-        </ButtonGroup>
+          {subscribed ? 'Unsubscribe' : 'Subscribe'}
+        </Button>
         {subscribed && (
-          <Dropdown
-            data-testid="subscriptions-panel"
-            aria-hidden={!showOptions}
-            className={
-              showOptions
-                ? `inline-block z-30 right-4 left-4 s:right-0 s:left-auto${
-                    positionType === 'relative' ? ' w-full' : ''
-                  }`
-                : null
-            }
-            ref={(element) => {
-              this.dropdownElement = element;
+          <Button
+            data-testid="subscription-settings"
+            variant="outlined"
+            icon={CogIcon}
+            contentType="icon"
+            onClick={(_event) => {
+              setState({
+                showOptions: !showOptions,
+                subscribed,
+                subscriptionType: changedSubscriptionType,
+              });
+            }}
+          />
+        )}
+      </ButtonGroup>
+      {subscribed && (
+        <Dropdown
+          data-testid="subscriptions-panel"
+          aria-hidden={!showOptions}
+          className={
+            showOptions
+              ? `inline-block z-30 right-4 left-4 s:right-0 s:left-auto${
+                  positionType === 'relative' ? ' w-full' : ''
+                }`
+              : null
+          }
+          ref={dropdownRefCallback}
+        >
+          <div className="crayons-fields mb-5">
+            <FormField variant="radio">
+              <RadioButton
+                id="subscribe-all"
+                name="subscribe_comments"
+                value={COMMENT_SUBSCRIPTION_TYPE.ALL}
+                checked={
+                  changedSubscriptionType === COMMENT_SUBSCRIPTION_TYPE.ALL
+                }
+                onClick={commentSubscriptionClick}
+              />
+              <label htmlFor="subscribe-all" className="crayons-field__label">
+                All comments
+                <p className="crayons-field__description">
+                  You’ll receive notifications for all new comments.
+                </p>
+              </label>
+            </FormField>
+
+            <FormField variant="radio">
+              <RadioButton
+                id="subscribe-toplevel"
+                name="subscribe_comments"
+                value={COMMENT_SUBSCRIPTION_TYPE.TOP}
+                onClick={commentSubscriptionClick}
+                checked={
+                  changedSubscriptionType === COMMENT_SUBSCRIPTION_TYPE.TOP
+                }
+              />
+              <label
+                htmlFor="subscribe-toplevel"
+                className="crayons-field__label"
+              >
+                Top-level comments
+                <p className="crayons-field__description">
+                  You’ll receive notifications only for all new top-level
+                  comments.
+                </p>
+              </label>
+            </FormField>
+
+            <FormField variant="radio">
+              <RadioButton
+                id="subscribe-author"
+                name="subscribe_comments"
+                value={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
+                onClick={commentSubscriptionClick}
+                checked={
+                  changedSubscriptionType === COMMENT_SUBSCRIPTION_TYPE.AUTHOR
+                }
+              />
+              <label
+                htmlFor="subscribe-author"
+                className="crayons-field__label"
+              >
+                Post author comments
+                <p className="crayons-field__description">
+                  You’ll receive notifications only if post author sends a new
+                  comment.
+                </p>
+              </label>
+            </FormField>
+          </div>
+
+          <Button
+            className="w-100"
+            onClick={(_event) => {
+              onSubscribe(changedSubscriptionType);
+
+              setState({
+                subscribed,
+                subscriptionType: changedSubscriptionType,
+                showOptions: false,
+              });
             }}
           >
-            <div className="crayons-fields mb-5">
-              <FormField variant="radio">
-                <RadioButton
-                  id="subscribe-all"
-                  name="subscribe_comments"
-                  value={COMMENT_SUBSCRIPTION_TYPE.ALL}
-                  checked={subscriptionType === COMMENT_SUBSCRIPTION_TYPE.ALL}
-                  onClick={this.commentSubscriptionClick}
-                />
-                <label htmlFor="subscribe-all" className="crayons-field__label">
-                  All comments
-                  <p className="crayons-field__description">
-                    You’ll receive notifications for all new comments.
-                  </p>
-                </label>
-              </FormField>
-
-              <FormField variant="radio">
-                <RadioButton
-                  id="subscribe-toplevel"
-                  name="subscribe_comments"
-                  value={COMMENT_SUBSCRIPTION_TYPE.TOP}
-                  onClick={this.commentSubscriptionClick}
-                  checked={subscriptionType === COMMENT_SUBSCRIPTION_TYPE.TOP}
-                />
-                <label
-                  htmlFor="subscribe-toplevel"
-                  className="crayons-field__label"
-                >
-                  Top-level comments
-                  <p className="crayons-field__description">
-                    You’ll receive notifications only for all new top-level
-                    comments.
-                  </p>
-                </label>
-              </FormField>
-
-              <FormField variant="radio">
-                <RadioButton
-                  id="subscribe-author"
-                  name="subscribe_comments"
-                  value={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
-                  onClick={this.commentSubscriptionClick}
-                  checked={
-                    subscriptionType === COMMENT_SUBSCRIPTION_TYPE.AUTHOR
-                  }
-                />
-                <label
-                  htmlFor="subscribe-author"
-                  className="crayons-field__label"
-                >
-                  Post author comments
-                  <p className="crayons-field__description">
-                    You’ll receive notifications only if post author sends a new
-                    comment.
-                  </p>
-                </label>
-              </FormField>
-            </div>
-
-            <Button
-              className="w-100"
-              onClick={(_event) => {
-                this.setState((prevState) => {
-                  onSubscribe(prevState.subscriptionType);
-
-                  return { ...prevState, showOptions: false };
-                });
-              }}
-            >
-              Done
-            </Button>
-          </Dropdown>
-        )}
-      </div>
-    );
-  }
+            Done
+          </Button>
+        </Dropdown>
+      )}
+    </div>
+  );
 }
 
 CommentSubscription.displayName = 'CommentSubscription';
