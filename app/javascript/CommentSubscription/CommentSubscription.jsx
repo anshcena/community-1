@@ -9,6 +9,23 @@ import {
   RadioButton,
 } from '@crayons';
 
+function getInitialState(initialSubscriptionType, subscribed) {
+  const initialSubscribe =
+    initialSubscriptionType &&
+    (initialSubscriptionType.length > 0 && initialSubscriptionType) !==
+      COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED;
+
+  const initialState = {
+    subscriptionType: subscribed
+      ? initialSubscriptionType
+      : COMMENT_SUBSCRIPTION_TYPE.ALL,
+    subscribed: initialSubscribe,
+    showOptions: false,
+  };
+
+  return initialState;
+}
+
 export const COMMENT_SUBSCRIPTION_TYPE = Object.freeze({
   ALL: 'all_comments',
   TOP: 'top_level_comments',
@@ -30,11 +47,22 @@ const CogIcon = () => (
   </svg>
 );
 
+// TODO: Fix param in JSDoc for default value.
+
+/**
+ * Comment subscription for an article.
+ *
+ * @param props The component's props.
+ * @param {string} [props.positionType=relative] The CSS position.
+ * @param {Function} [props.onSubscribe] Callback to subuscribe from comments of an article.
+ * @param {Function} props.onUnsubscribe Callback to unsubuscribe from comments of an article.
+ * @param {string} props.initialSubscriptionTypeThe type of comment subscription.
+ */
 export function CommentSubscription({
   positionType = 'relative',
   onSubscribe,
   onUnsubscribe,
-  subscriptionType,
+  initialSubscriptionType,
 }) {
   function commentSubscriptionClick(event) {
     setState({
@@ -44,19 +72,11 @@ export function CommentSubscription({
     });
   }
 
-  function dropdownPlacementHandler() {
-    const { current } = dropdownRef;
-
-    if (current === null) {
-      return;
-    }
-
-    const { base: element } = current;
-
+  function dropdownPlacementHandler(dropdownElement) {
     // Reset the top before doing any calculations
-    element.style.bottom = '';
+    dropdownElement.style.bottom = '';
 
-    const { bottom: dropDownBottom } = element.getBoundingClientRect();
+    const { bottom: dropDownBottom } = dropdownElement.getBoundingClientRect();
     const { height } = buttonGroupRef.current.base.getBoundingClientRect();
 
     if (
@@ -64,29 +84,13 @@ export function CommentSubscription({
       dropDownBottom > window.innerHeight
     ) {
       // The 4 pixels is the box shadow from the drop down.
-      element.style.bottom = `${height + 4}px`;
+      dropdownElement.style.bottom = `${height + 4}px`;
     }
   }
 
-  const initialSubscribe =
-    subscriptionType &&
-    (subscriptionType.length > 0 && subscriptionType) !==
-      COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED;
-
-  const initialState = {
-    subscriptionType: subscribed
-      ? subscriptionType
-      : COMMENT_SUBSCRIPTION_TYPE.ALL,
-    subscribed: initialSubscribe,
-    showOptions: false,
-  };
-
+  const initialState = getInitialState(initialSubscriptionType, subscribed);
   const [state, setState] = useState(initialState);
-  const {
-    showOptions,
-    subscriptionType: changedSubscriptionType,
-    subscribed,
-  } = state;
+  const { showOptions, subscriptionType, subscribed } = state;
 
   const buttonGroupRef = useRef(null);
   const buttonGroupRefCallback = useCallback((element) => {
@@ -99,17 +103,27 @@ export function CommentSubscription({
   }, []);
 
   useEffect(() => {
+    const { current } = dropdownRef;
+
+    if (!current) {
+      return;
+    }
+
+    const scrollHandler = ((dropdownElement) => {
+      return () => dropdownPlacementHandler(dropdownElement);
+    })(current.base);
+
     if (showOptions) {
-      window.addEventListener('scroll', dropdownPlacementHandler);
-      dropdownPlacementHandler();
+      window.addEventListener('scroll', scrollHandler);
+      scrollHandler();
     } else {
-      window.removeEventListener('scroll', dropdownPlacementHandler);
+      window.removeEventListener('scroll', scrollHandler);
     }
 
     return () => {
-      window.removeEventListener('scroll', dropdownPlacementHandler);
+      window.removeEventListener('scroll', scrollHandler);
     };
-  }, [showOptions, subscribed, changedSubscriptionType]);
+  }, [showOptions, subscribed, subscriptionType]);
 
   return (
     <div className={positionType}>
@@ -125,13 +139,13 @@ export function CommentSubscription({
                 subscriptionType: COMMENT_SUBSCRIPTION_TYPE.ALL,
               });
             } else {
-              onSubscribe(changedSubscriptionType);
+              onSubscribe(subscriptionType);
             }
 
             setState({
               showOptions,
               subscribed: !subscribed,
-              subscriptionType: changedSubscriptionType,
+              subscriptionType,
             });
           }}
         >
@@ -147,7 +161,7 @@ export function CommentSubscription({
               setState({
                 showOptions: !showOptions,
                 subscribed,
-                subscriptionType: changedSubscriptionType,
+                subscriptionType,
               });
             }}
           />
@@ -172,9 +186,7 @@ export function CommentSubscription({
                 id="subscribe-all"
                 name="subscribe_comments"
                 value={COMMENT_SUBSCRIPTION_TYPE.ALL}
-                checked={
-                  changedSubscriptionType === COMMENT_SUBSCRIPTION_TYPE.ALL
-                }
+                checked={subscriptionType === COMMENT_SUBSCRIPTION_TYPE.ALL}
                 onClick={commentSubscriptionClick}
               />
               <label htmlFor="subscribe-all" className="crayons-field__label">
@@ -191,9 +203,7 @@ export function CommentSubscription({
                 name="subscribe_comments"
                 value={COMMENT_SUBSCRIPTION_TYPE.TOP}
                 onClick={commentSubscriptionClick}
-                checked={
-                  changedSubscriptionType === COMMENT_SUBSCRIPTION_TYPE.TOP
-                }
+                checked={subscriptionType === COMMENT_SUBSCRIPTION_TYPE.TOP}
               />
               <label
                 htmlFor="subscribe-toplevel"
@@ -213,9 +223,7 @@ export function CommentSubscription({
                 name="subscribe_comments"
                 value={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
                 onClick={commentSubscriptionClick}
-                checked={
-                  changedSubscriptionType === COMMENT_SUBSCRIPTION_TYPE.AUTHOR
-                }
+                checked={subscriptionType === COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
               />
               <label
                 htmlFor="subscribe-author"
@@ -233,11 +241,11 @@ export function CommentSubscription({
           <Button
             className="w-100"
             onClick={(_event) => {
-              onSubscribe(changedSubscriptionType);
+              onSubscribe(subscriptionType);
 
               setState({
                 subscribed,
-                subscriptionType: changedSubscriptionType,
+                subscriptionType,
                 showOptions: false,
               });
             }}
@@ -256,7 +264,7 @@ CommentSubscription.propTypes = {
   positionType: PropTypes.oneOf(['absolute', 'relative', 'static']).isRequired,
   onSubscribe: PropTypes.func.isRequired,
   onUnsubscribe: PropTypes.func.isRequired,
-  subscriptionType: PropTypes.oneOf(
+  initialSubscriptionType: PropTypes.oneOf(
     Object.entries(COMMENT_SUBSCRIPTION_TYPE).map(([, value]) => value),
   ).isRequired,
 };

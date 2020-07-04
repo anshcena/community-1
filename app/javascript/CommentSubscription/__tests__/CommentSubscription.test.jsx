@@ -17,7 +17,7 @@ describe('<CommentSubscription />', () => {
   it('should have no a11y violations when subscribed', async () => {
     const { container } = render(
       <CommentSubscription
-        subscriptionType={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
+        initialSubscriptionType={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
       />,
     );
     const results = await axe(container);
@@ -35,7 +35,7 @@ describe('<CommentSubscription />', () => {
   it('should render as subscribed with the given subscription type', () => {
     const { getByTestId, getByText, getByLabelText } = render(
       <CommentSubscription
-        subscriptionType={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
+        initialSubscriptionType={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
       />,
     );
     const button = getByText(/unsubscribe/i, { selector: 'button' });
@@ -67,7 +67,7 @@ describe('<CommentSubscription />', () => {
     const onUnsubscribe = jest.fn();
     const { getByText } = render(
       <CommentSubscription
-        subscriptionType={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
+        initialSubscriptionType={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
         onUnsubscribe={onUnsubscribe}
       />,
     );
@@ -83,7 +83,7 @@ describe('<CommentSubscription />', () => {
     const { getByTestId, getByText, findByTestId } = render(
       <CommentSubscription
         onSubscribe={onSubscribe}
-        subscriptionType={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
+        initialSubscriptionType={COMMENT_SUBSCRIPTION_TYPE.AUTHOR}
       />,
     );
 
@@ -112,7 +112,7 @@ describe('<CommentSubscription />', () => {
 
     const { getByTestId, getByText, getByLabelText } = render(
       <CommentSubscription
-        subscriptionType={COMMENT_SUBSCRIPTION_TYPE.ALL}
+        initialSubscriptionType={COMMENT_SUBSCRIPTION_TYPE.ALL}
         onSubscribe={onSubscribe}
       />,
     );

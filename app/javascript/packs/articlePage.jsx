@@ -44,7 +44,7 @@ const userDataIntervalID = setInterval(async () => {
 
       render(
         <CommentSubscription
-          subscriptionType={subscriptionType}
+          initialSubscriptionType={subscriptionType}
           positionType="static"
           onSubscribe={subscriptionRequestHandler}
           onUnsubscribe={subscriptionRequestHandler}

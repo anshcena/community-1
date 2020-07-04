@@ -19,8 +19,8 @@ const commonProps = {
 export const Unsubscribed = () => (
   <CommentSubscription
     {...commonProps}
-    subscriptionType={select(
-      'subscriptionType',
+    initialSubscriptionType={select(
+      'initialSubscriptionType',
       COMMENT_SUBSCRIPTION_TYPE,
       COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED,
     )}
@@ -34,8 +34,8 @@ Unsubscribed.story = {
 export const Subscribed = () => (
   <CommentSubscription
     {...commonProps}
-    subscriptionType={select(
-      'subscriptionType',
+    initialSubscriptionType={select(
+      'initialSubscriptionType',
       COMMENT_SUBSCRIPTION_TYPE,
       COMMENT_SUBSCRIPTION_TYPE.ALL,
     )}
@@ -49,8 +49,8 @@ Subscribed.story = {
 export const SubscribedButNotDefault = () => (
   <CommentSubscription
     {...commonProps}
-    subscriptionType={select(
-      'subscriptionType',
+    initialSubscriptionType={select(
+      'initialSubscriptionType',
       COMMENT_SUBSCRIPTION_TYPE,
       COMMENT_SUBSCRIPTION_TYPE.AUTHOR,
     )}
