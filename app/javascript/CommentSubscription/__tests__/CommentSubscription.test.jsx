@@ -45,7 +45,7 @@ describe('<CommentSubscription />', () => {
     cogButton.click();
 
     const onlyAuthorCommentsRadioButton = getByLabelText(
-      /^Post author comments/i,
+      /^post author comments/i,
     );
 
     expect(onlyAuthorCommentsRadioButton.checked).toEqual(true);

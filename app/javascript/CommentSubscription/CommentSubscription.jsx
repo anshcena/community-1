@@ -9,17 +9,17 @@ import {
   RadioButton,
 } from '@crayons';
 
-function getInitialState(initialSubscriptionType, subscribed) {
-  const initialSubscribe =
+function getInitialState(initialSubscriptionType) {
+  const subscribed =
     initialSubscriptionType &&
-    (initialSubscriptionType.length > 0 && initialSubscriptionType) !==
-      COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED;
+    initialSubscriptionType.length > 0 &&
+    initialSubscriptionType !== COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED;
 
   const initialState = {
     subscriptionType: subscribed
       ? initialSubscriptionType
       : COMMENT_SUBSCRIPTION_TYPE.ALL,
-    subscribed: initialSubscribe,
+    subscribed,
     showOptions: false,
   };
 
@@ -88,7 +88,7 @@ export function CommentSubscription({
     }
   }
 
-  const initialState = getInitialState(initialSubscriptionType, subscribed);
+  const initialState = getInitialState(initialSubscriptionType);
   const [state, setState] = useState(initialState);
   const { showOptions, subscriptionType, subscribed } = state;
 
