@@ -110,7 +110,7 @@ describe('<CommentSubscription />', () => {
   it('should update comment subscription when the done button is clicked in the subscription options panel', async () => {
     const onSubscribe = jest.fn();
 
-    const { getByTestId, getByText, getByLabelText } = render(
+    const { getByTestId, findByText, getByLabelText } = render(
       <CommentSubscription
         initialSubscriptionType={COMMENT_SUBSCRIPTION_TYPE.ALL}
         onSubscribe={onSubscribe}
@@ -121,11 +121,11 @@ describe('<CommentSubscription />', () => {
     cogButton.click();
 
     const onlyAuthorCommentsRadioButton = getByLabelText(
-      /^Post author comments/i,
+      /post author comments/i,
     );
     onlyAuthorCommentsRadioButton.click();
 
-    const doneButton = getByText(/done/i);
+    const doneButton = await findByText(/done/i);
     doneButton.click();
 
     expect(onlyAuthorCommentsRadioButton.checked).toEqual(true);
