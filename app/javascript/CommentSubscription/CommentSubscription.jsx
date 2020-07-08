@@ -20,6 +20,20 @@ function getInitialSubscriptionType(subscriptionType) {
     : COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED;
 }
 
+function getScrollHandler(dropdownElement, heightAdjustment) {
+  return () => {
+    // Reset the top before doing any calculations
+    dropdownElement.style.bottom = '';
+
+    const { bottom } = dropdownElement.getBoundingClientRect();
+
+    if (Math.sign(bottom) === -1 || bottom > window.innerHeight) {
+      // The 4 pixels is the box shadow from the drop down.
+      dropdownElement.style.bottom = `${heightAdjustment + 4}px`;
+    }
+  };
+}
+
 function commentSubscription(state, { type, payload }) {
   switch (type) {
     case ACTION_TYPE.SUBSCRIPTION:
@@ -68,22 +82,6 @@ export function CommentSubscription({
     });
   }
 
-  function dropdownPlacementHandler(dropdownElement) {
-    // Reset the top before doing any calculations
-    dropdownElement.style.bottom = '';
-
-    const { bottom: dropDownBottom } = dropdownElement.getBoundingClientRect();
-    const { height } = buttonGroupRef.current.base.getBoundingClientRect();
-
-    if (
-      Math.sign(dropDownBottom) === -1 ||
-      dropDownBottom > window.innerHeight
-    ) {
-      // The 4 pixels is the box shadow from the drop down.
-      dropdownElement.style.bottom = `${height + 4}px`;
-    }
-  }
-
   const initialState = {
     subscriptionType: getInitialSubscriptionType(initialSubscriptionType),
     showOptions: false,
@@ -102,10 +100,9 @@ export function CommentSubscription({
       return;
     }
 
-    const scrollHandler = ((dropdownElement) => {
-      return () => dropdownPlacementHandler(dropdownElement);
-    })(current.base);
-
+    const { height } = buttonGroupRef.current.base.getBoundingClientRect();
+    const scrollHandler = getScrollHandler(current.base, height);
+    debugger;
     if (showOptions) {
       window.addEventListener('scroll', scrollHandler);
       scrollHandler();

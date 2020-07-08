@@ -131,4 +131,20 @@ describe('<CommentSubscription />', () => {
     expect(onlyAuthorCommentsRadioButton.checked).toEqual(true);
     expect(onSubscribe).toHaveBeenCalledWith(COMMENT_SUBSCRIPTION_TYPE.AUTHOR);
   });
+
+  it.only('should render panel above the button group', async () => {
+    const { getByTestId, findByTestId } = render(
+      <CommentSubscription
+        initialSubscriptionType={COMMENT_SUBSCRIPTION_TYPE.ALL}
+      />,
+    );
+
+    const subscriptionsPanel = getByTestId('subscriptions-panel');
+    subscriptionsPanel.setAttribute('style', 'bottom: 10000px');
+
+    const cogButton = getByTestId('subscription-settings');
+    cogButton.click();
+
+    expect(await findByTestId('subscriptions-panel')).toBeDefined();
+  });
 });
