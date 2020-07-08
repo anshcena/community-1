@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
+import { useEffect, useCallback, useRef, useReducer } from 'preact/hooks';
 import PropTypes from 'prop-types';
 import { CogIcon } from '../icons/CogIcon';
 import {
@@ -9,6 +9,24 @@ import {
   FormField,
   RadioButton,
 } from '@crayons';
+
+function commentSubscription(state, action) {
+  const { type, payload } = action;
+
+  switch (type) {
+    case 'subscriptionType':
+      return { ...state, subscriptionType: payload };
+
+    case 'subscribed':
+      return { ...state, subscribed: payload };
+
+    case 'showOptions':
+      return { ...state, showOptions: payload };
+
+    default:
+      return state;
+  }
+}
 
 function getInitialState(initialSubscriptionType) {
   const subscribed =
@@ -34,8 +52,6 @@ export const COMMENT_SUBSCRIPTION_TYPE = Object.freeze({
   NOT_SUBSCRIBED: 'not_subscribed',
 });
 
-// TODO: Fix param in JSDoc for default value.
-
 /**
  * Comment subscription for an article.
  *
@@ -52,10 +68,9 @@ export function CommentSubscription({
   initialSubscriptionType,
 }) {
   function commentSubscriptionClick(event) {
-    setState({
-      subscribed,
-      showOptions,
-      subscriptionType: event.target.value,
+    dispatch({
+      type: 'subscriptionType',
+      payload: event.target.value,
     });
   }
 
@@ -76,7 +91,7 @@ export function CommentSubscription({
   }
 
   const initialState = getInitialState(initialSubscriptionType);
-  const [state, setState] = useState(initialState);
+  const [state, dispatch] = useReducer(commentSubscription, initialState);
   const { showOptions, subscriptionType, subscribed } = state;
 
   const buttonGroupRef = useRef(null);
@@ -120,19 +135,17 @@ export function CommentSubscription({
           onClick={(_event) => {
             if (subscribed) {
               onUnsubscribe(COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED);
-              setState({
-                showOptions,
-                subscribed,
-                subscriptionType: COMMENT_SUBSCRIPTION_TYPE.ALL,
+              dispatch({
+                type: 'subscriptionType',
+                payload: COMMENT_SUBSCRIPTION_TYPE.ALL,
               });
             } else {
               onSubscribe(subscriptionType);
             }
 
-            setState({
-              showOptions,
-              subscribed: !subscribed,
-              subscriptionType,
+            dispatch({
+              type: 'subscribed',
+              payload: !subscribed,
             });
           }}
         >
@@ -145,10 +158,9 @@ export function CommentSubscription({
             icon={CogIcon}
             contentType="icon"
             onClick={(_event) => {
-              setState({
-                showOptions: !showOptions,
-                subscribed,
-                subscriptionType,
+              dispatch({
+                type: 'showOptions',
+                payload: !showOptions,
               });
             }}
           />
@@ -230,10 +242,9 @@ export function CommentSubscription({
             onClick={(_event) => {
               onSubscribe(subscriptionType);
 
-              setState({
-                subscribed,
-                subscriptionType,
-                showOptions: false,
+              dispatch({
+                type: 'showOptions',
+                payload: false,
               });
             }}
           >
