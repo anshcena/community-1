@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useEffect, useCallback, useRef, useReducer } from 'preact/hooks';
+import { useEffect, useRef, useReducer } from 'preact/hooks';
 import PropTypes from 'prop-types';
 import { CogIcon } from '../icons/CogIcon';
 import {
@@ -10,40 +10,34 @@ import {
   RadioButton,
 } from '@crayons';
 
-function commentSubscription(state, action) {
-  const { type, payload } = action;
+function getInitialSubscriptionType(subscriptionType) {
+  const subscribed = Object.values(COMMENT_SUBSCRIPTION_TYPE).includes(
+    subscriptionType,
+  );
 
+  return subscribed
+    ? subscriptionType
+    : COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED;
+}
+
+function commentSubscription(state, { type, payload }) {
   switch (type) {
-    case 'subscriptionType':
+    case ACTION_TYPE.SUBSCRIPTION:
       return { ...state, subscriptionType: payload };
 
-    case 'subscribed':
-      return { ...state, subscribed: payload };
-
-    case 'showOptions':
+    case ACTION_TYPE.SHOW_OPTIONS:
       return { ...state, showOptions: payload };
 
     default:
+      // An invalid action, so just return the current state.
       return state;
   }
 }
 
-function getInitialState(initialSubscriptionType) {
-  const subscribed =
-    initialSubscriptionType &&
-    initialSubscriptionType.length > 0 &&
-    initialSubscriptionType !== COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED;
-
-  const initialState = {
-    subscriptionType: subscribed
-      ? initialSubscriptionType
-      : COMMENT_SUBSCRIPTION_TYPE.ALL,
-    subscribed,
-    showOptions: false,
-  };
-
-  return initialState;
-}
+const ACTION_TYPE = Object.freeze({
+  SUBSCRIPTION: 'SUBSCRIPTION',
+  SHOW_OPTIONS: 'SHOW_OPTIONS',
+});
 
 export const COMMENT_SUBSCRIPTION_TYPE = Object.freeze({
   ALL: 'all_comments',
@@ -57,8 +51,8 @@ export const COMMENT_SUBSCRIPTION_TYPE = Object.freeze({
  *
  * @param props The component's props.
  * @param {string} [props.positionType=relative] The CSS position.
- * @param {Function} [props.onSubscribe] Callback to subuscribe from comments of an article.
- * @param {Function} props.onUnsubscribe Callback to unsubuscribe from comments of an article.
+ * @param {Function} [props.onSubscribe] Callback to subscribe from comments of an article.
+ * @param {Function} props.onUnsubscribe Callback to unsbuscribe from comments of an article.
  * @param {string} props.initialSubscriptionTypeThe type of comment subscription.
  */
 export function CommentSubscription({
@@ -69,7 +63,7 @@ export function CommentSubscription({
 }) {
   function commentSubscriptionClick(event) {
     dispatch({
-      type: 'subscriptionType',
+      type: ACTION_TYPE.SUBSCRIPTION,
       payload: event.target.value,
     });
   }
@@ -90,19 +84,16 @@ export function CommentSubscription({
     }
   }
 
-  const initialState = getInitialState(initialSubscriptionType);
+  const initialState = {
+    subscriptionType: getInitialSubscriptionType(initialSubscriptionType),
+    showOptions: false,
+  };
   const [state, dispatch] = useReducer(commentSubscription, initialState);
-  const { showOptions, subscriptionType, subscribed } = state;
-
+  const { showOptions, subscriptionType } = state;
+  const subscribed =
+    subscriptionType !== COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED;
   const buttonGroupRef = useRef(null);
-  const buttonGroupRefCallback = useCallback((element) => {
-    buttonGroupRef.current = element;
-  }, []);
-
   const dropdownRef = useRef(null);
-  const dropdownRefCallback = useCallback((element) => {
-    dropdownRef.current = element;
-  }, []);
 
   useEffect(() => {
     const { current } = dropdownRef;
@@ -125,27 +116,25 @@ export function CommentSubscription({
     return () => {
       window.removeEventListener('scroll', scrollHandler);
     };
-  }, [showOptions, subscribed, subscriptionType]);
+  }, [showOptions]);
 
   return (
     <div className={positionType}>
-      <ButtonGroup ref={buttonGroupRefCallback}>
+      <ButtonGroup ref={buttonGroupRef}>
         <Button
           variant="outlined"
           onClick={(_event) => {
             if (subscribed) {
               onUnsubscribe(COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED);
-              dispatch({
-                type: 'subscriptionType',
-                payload: COMMENT_SUBSCRIPTION_TYPE.ALL,
-              });
             } else {
-              onSubscribe(subscriptionType);
+              onSubscribe(COMMENT_SUBSCRIPTION_TYPE.ALL);
             }
 
             dispatch({
-              type: 'subscribed',
-              payload: !subscribed,
+              type: ACTION_TYPE.SUBSCRIPTION,
+              payload: subscribed
+                ? COMMENT_SUBSCRIPTION_TYPE.NOT_SUBSCRIBED
+                : COMMENT_SUBSCRIPTION_TYPE.ALL,
             });
           }}
         >
@@ -159,7 +148,7 @@ export function CommentSubscription({
             contentType="icon"
             onClick={(_event) => {
               dispatch({
-                type: 'showOptions',
+                type: ACTION_TYPE.SHOW_OPTIONS,
                 payload: !showOptions,
               });
             }}
@@ -177,7 +166,7 @@ export function CommentSubscription({
                 }`
               : null
           }
-          ref={dropdownRefCallback}
+          ref={dropdownRef}
         >
           <div className="crayons-fields mb-5">
             <FormField variant="radio">
@@ -243,7 +232,7 @@ export function CommentSubscription({
               onSubscribe(subscriptionType);
 
               dispatch({
-                type: 'showOptions',
+                type: ACTION_TYPE.SHOW_OPTIONS,
                 payload: false,
               });
             }}
