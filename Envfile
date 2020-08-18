@@ -53,6 +53,12 @@ variable :APPLE_TEAM_ID, :String, default: ""
 variable :APPLE_KEY_ID, :String, default: ""
 variable :APPLE_PEM, :String, default: ""
 
+
+# Facebook for authentication
+# (https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow)
+variable :FACEBOOK_APP_ID, :String, default: ""
+variable :FACEBOOK_APP_SECRET, :String, default: ""
+
 # GitHub for authentication and GitHub related features
 # (https://developer.github.com/v3/guides/basics-of-authentication/)
 variable :GITHUB_KEY, :String, default: ""

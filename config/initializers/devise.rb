@@ -289,6 +289,7 @@ Devise.setup do |config|
                   key_id: ApplicationConfig["APPLE_KEY_ID"],
                   pem: ApplicationConfig["APPLE_PEM"]
   config.omniauth :github, ApplicationConfig["GITHUB_KEY"], ApplicationConfig["GITHUB_SECRET"], scope: "user:email"
+  config.omniauth :facebook, ApplicationConfig["FACEBOOK_APP_ID"], ApplicationConfig["FACEBOOK_APP_SECRET"]
   config.omniauth :twitter, ApplicationConfig["TWITTER_KEY"], ApplicationConfig["TWITTER_SECRET"]
 
   # ==> Warden configuration
