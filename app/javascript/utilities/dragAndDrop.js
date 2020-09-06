@@ -49,6 +49,10 @@ export function useDragAndDrop({ onDragOver, onDragExit, onDrop }) {
       document.removeEventListener('dragover', noDragAndDropHandler);
       document.removeEventListener('drop', noDragAndDropHandler);
 
+      if (!element) {
+        return;
+      }
+
       element.removeEventListener('dragover', onDragOver);
       element.removeEventListener('dragexit', onDragExit);
       element.removeEventListener('dragleave', onDragExit);

@@ -1,6 +1,31 @@
 import { addSnackbarItem } from '../../Snackbar';
 import { processImageUpload } from '../actions';
 
+const IS_UPLOADING_PLACEHOLDER_TEXT = '\n![Uploading...]()\n';
+
+export function insertMarkdownLink({
+  element,
+  alternateText,
+  imageUrl,
+  isUploading = false,
+}) {
+  const markdownImageLink = isUploading
+    ? IS_UPLOADING_PLACEHOLDER_TEXT
+    : `\n![${alternateText}](${imageUrl})\n`;
+  const { selectionStart, selectionEnd, value } = element;
+  const uploadTextRemovedDelta =
+    isUploading || selectionStart === 0
+      ? 0
+      : IS_UPLOADING_PLACEHOLDER_TEXT.length;
+  const before = value.substring(0, selectionStart - uploadTextRemovedDelta);
+  const after = value.substring(selectionEnd, value.length);
+
+  element.value = `${before + markdownImageLink}${after}`;
+  element.selectionStart =
+    selectionStart + markdownImageLink.length - uploadTextRemovedDelta;
+  element.selectionEnd = element.selectionStart;
+}
+
 /**
  * Determines if at least one type of drag and drop datum type matches the data transfer type to match.
  *
@@ -17,15 +42,25 @@ export function matchesDataTransferType(
 // TODO: Document functions
 export function handleImageDrop(handleImageSuccess, handleImageFailure) {
   return function (event) {
-    event.preventDefault();
+    const imageUploadContext =
+      event instanceof ClipboardEvent
+        ? event.clipboardData
+        : event.dataTransfer;
+    const { types, files } = imageUploadContext;
 
-    if (!matchesDataTransferType(event.dataTransfer.types)) {
+    if (!matchesDataTransferType(types)) {
       return;
     }
 
-    event.currentTarget.classList.remove('opacity-25');
+    insertMarkdownLink({
+      element: event.currentTarget,
+      isUploading: true,
+    });
 
-    const { files } = event.dataTransfer;
+    // Only prevent the default action if we know we are dealing with files
+    event.preventDefault();
+
+    event.currentTarget.classList.remove('opacity-25');
 
     if (files.length > 1) {
       addSnackbarItem({

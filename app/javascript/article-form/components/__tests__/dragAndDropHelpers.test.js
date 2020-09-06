@@ -12,6 +12,7 @@ jest.mock('../../actions');
 describe('Article drag and drop helpers', () => {
   beforeEach(() => {
     addSnackbarItem.mockReset();
+    global.ClipboardEvent = jest.fn();
   });
 
   describe('matchesDataTransferType', () => {

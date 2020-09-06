@@ -8,6 +8,7 @@ import {
   handleImageFailure,
   onDragOver,
   onDragExit,
+  insertMarkdownLink,
 } from './dragAndDropHelpers';
 import { useDragAndDrop } from '@utilities/dragAndDrop';
 
@@ -17,16 +18,13 @@ function handleImageSuccess(textAreaRef) {
     // textarea ref.
     const editableBodyElement = textAreaRef.current.base;
     const { links, image } = response;
-    const altText = image[0].name.replace(/\.[^.]+$/, '');
-    const markdownImageLink = `![${altText}](${links[0]})\n`;
-    const { selectionStart, selectionEnd, value } = editableBodyElement;
-    const before = value.substring(0, selectionStart);
-    const after = value.substring(selectionEnd, value.length);
+    const alternateText = image[0].name.replace(/\.[^.]+$/, '');
 
-    editableBodyElement.value = `${before + markdownImageLink} ${after}`;
-    editableBodyElement.selectionStart =
-      selectionStart + markdownImageLink.length;
-    editableBodyElement.selectionEnd = editableBodyElement.selectionStart;
+    insertMarkdownLink({
+      element: editableBodyElement,
+      alternateText,
+      imageUrl: links[0],
+    });
 
     // Dispatching a new event so that linkstate, https://github.com/developit/linkstate,
     // the function used to create the onChange prop gets called correctly.
@@ -41,20 +39,28 @@ export const EditorBody = ({
   version,
 }) => {
   const textAreaRef = useRef(null);
+  const imageUploadHandler = handleImageDrop(
+    handleImageSuccess(textAreaRef),
+    handleImageFailure,
+  );
   const { setElement } = useDragAndDrop({
-    onDrop: handleImageDrop(
-      handleImageSuccess(textAreaRef),
-      handleImageFailure,
-    ),
+    onDrop: imageUploadHandler,
     onDragOver,
     onDragExit,
   });
 
   useEffect(() => {
-    if (textAreaRef.current) {
-      setElement(textAreaRef.current.base);
+    const element = textAreaRef.current ? textAreaRef.current.base : null;
+
+    if (element) {
+      setElement(element);
+      element.addEventListener('paste', imageUploadHandler);
     }
-  });
+
+    return () => {
+      element && element.removeEventListener('paste', imageUploadHandler);
+    };
+  }, [setElement, imageUploadHandler]);
 
   return (
     <div
