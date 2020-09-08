@@ -19,6 +19,8 @@ function handleImageSuccess(textAreaRef) {
     const editableBodyElement = textAreaRef.current.base;
     const {
       links,
+      // Set the default name to image in the event the browser does not
+      // provide the file name.
       image: [image = { name: 'image' }],
     } = response;
     const alternateText = image.name.replace(/\.[^.]+$/, '');

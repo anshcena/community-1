@@ -1,8 +1,16 @@
 import { addSnackbarItem } from '../../Snackbar';
 import { processImageUpload } from '../actions';
 
-const IS_UPLOADING_PLACEHOLDER_TEXT = '\n![Uploading...]()\n';
+const IS_UPLOADING_PLACEHOLDER_TEXT = '![Uploading...]()\n';
 
+/**
+ *
+ * @param {object} markdownLinkOptions
+ * @param {HTMLElement} markdownLinkOptions.element
+ * @param {string} markdownLinkOptions.alternateText
+ * @param {string} markdownLinkOptions.imageUrl
+ * @param {boolean} markdownLinkOptions.isUploading
+ */
 export function insertMarkdownLink({
   element,
   alternateText,
@@ -11,7 +19,7 @@ export function insertMarkdownLink({
 }) {
   const markdownImageLink = isUploading
     ? IS_UPLOADING_PLACEHOLDER_TEXT
-    : `\n![${alternateText}](${imageUrl})\n`;
+    : `![${alternateText}](${imageUrl})\n`;
   const { selectionStart, selectionEnd, value } = element;
   const uploadTextRemovedDelta =
     isUploading || selectionStart === 0
@@ -39,8 +47,14 @@ export function matchesDataTransferType(
   return types.some((type) => type === dataTransferType);
 }
 
-// TODO: Document functions
-export function handleImageDrop(handleImageSuccess, handleImageFailure) {
+/**
+ * Handles an image drop. If the image upload is successful, the
+ * success callback is called. Otherwise, the failure callback is called.
+ *
+ * @param {Function} successCallback Callback post image upload success.
+ * @param {Function} failureCallback Callback post image upload failure.
+ */
+export function handleImageDrop(successCallback, failureCallback) {
   return function (event) {
     const imageUploadContext =
       event instanceof ClipboardEvent
@@ -70,7 +84,7 @@ export function handleImageDrop(handleImageSuccess, handleImageFailure) {
       return;
     }
 
-    processImageUpload(files, handleImageSuccess, handleImageFailure);
+    processImageUpload(files, successCallback, failureCallback);
   };
 }
 
@@ -100,7 +114,7 @@ export function onDragExit(event) {
  * @param {Error} error an error
  * @param {string} error.message an error message
  */
-export function handleImageFailure({ message }) {
+export function failureCallback({ message }) {
   addSnackbarItem({
     message,
     addCloseButton: true,
