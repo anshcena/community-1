@@ -52,6 +52,8 @@ module Admin
         twitter_secret
         github_key
         github_secret
+        google_oauth2_key
+        google_oauth2_secret
         facebook_key
         facebook_secret
         allow_email_password_registration

@@ -25,6 +25,8 @@ class SiteConfig < RailsSettings::Base
   field :github_secret, type: :string, default: ApplicationConfig["GITHUB_SECRET"]
   field :facebook_key, type: :string
   field :facebook_secret, type: :string
+  field :google_oauth2_key, type: :string
+  field :google_oauth2_secret, type: :string
 
   # Campaign
   field :campaign_hero_html_variant_name, type: :string, default: ""

@@ -9,6 +9,13 @@ GITHUB_OMNIUATH_SETUP = lambda do |env|
   env["omniauth.strategy"].options[:scope] = "user:email"
 end
 
+GOOGLE_OMNIUATH_SETUP = lambda do |env|
+  env["omniauth.strategy"].options[:client_id] = SiteConfig.google_oauth2_key
+  env["omniauth.strategy"].options[:client_secret] = SiteConfig.google_oauth2_secret
+  # env["omniauth.strategy"].options[:name] = :google
+  # env["omniauth.strategy"].options[:scope] = "email"
+end
+
 FACEBOOK_OMNIAUTH_SETUP = lambda do |env|
   env["omniauth.strategy"].options[:client_id] = SiteConfig.facebook_key
   env["omniauth.strategy"].options[:client_secret] = SiteConfig.facebook_secret
@@ -302,6 +309,7 @@ Devise.setup do |config|
   # Fun fact, unless Twitter is last, it doesn't work for some reason.
   config.omniauth :facebook, setup: FACEBOOK_OMNIAUTH_SETUP
   config.omniauth :github, setup: GITHUB_OMNIUATH_SETUP
+  config.omniauth :google_oauth2, setup: GOOGLE_OMNIUATH_SETUP
   config.omniauth :twitter, setup: TWITTER_OMNIAUTH_SETUP
 
   # ==> Warden configuration

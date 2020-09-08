@@ -113,6 +113,16 @@ module Constants
         description: "The \"Client Secret\" portion of the GitHub Oauth Apps portal",
         placeholder: ""
       },
+      google_oauth2_key: {
+        description:
+          "The \"Client ID\" portion of the Google Oauth Client ID for Web application",
+        placeholder: ""
+      },
+      google_oauth2_secret: {
+        description:
+          "The \"Client Secret\" portion of the Google Oauth Client ID for Web application",
+        placeholder: ""
+      },
       ga_tracking_id: {
         description: "Google Analytics Tracking ID, e.g. UA-71991000-1",
         placeholder: ""

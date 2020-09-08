@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_02_204028) do
+ActiveRecord::Schema.define(version: 2020_09_08_153327) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
@@ -1247,6 +1247,8 @@ ActiveRecord::Schema.define(version: 2020_09_02_204028) do
     t.datetime "github_repos_updated_at", default: "2017-01-01 05:00:00"
     t.string "github_username"
     t.string "gitlab_url"
+    t.datetime "google_oauth2_created_at"
+    t.string "google_oauth2_username"
     t.string "inbox_guidelines"
     t.string "inbox_type", default: "private"
     t.string "instagram_url"
@@ -1328,6 +1330,7 @@ ActiveRecord::Schema.define(version: 2020_09_02_204028) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["facebook_username"], name: "index_users_on_facebook_username"
     t.index ["github_username"], name: "index_users_on_github_username", unique: true
+    t.index ["google_oauth2_username"], name: "index_users_on_google_oauth2_username"
     t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true
     t.index ["invitations_count"], name: "index_users_on_invitations_count"
     t.index ["invited_by_id"], name: "index_users_on_invited_by_id"

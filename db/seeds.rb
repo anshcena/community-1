@@ -281,6 +281,8 @@ seeder.create_if_none(Broadcast) do
       "via our Twitter account <a href='https://twitter.com/thePracticalDev'>@thePracticalDev</a>.",
     facebook_connect: "You're on a roll! 🎉  Do you have a Facebook account? " \
       "Consider <a href='/settings'>connecting it</a>.",
+    google_oauth2_connect: "You're on a roll! 🎉  Do you have a Google account? " \
+      "Consider <a href='/settings'>connecting it</a>.",
     github_connect: "You're on a roll! 🎉  Do you have a GitHub account? " \
       "Consider <a href='/settings'>connecting it</a> so you can pin any of your repos to your profile.",
     customize_feed: "Hi, it's me again! 👋 Now that you're a part of the DEV community, let's focus on personalizing " \
