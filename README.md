@@ -1,6 +1,6 @@
 <div align="center">
   <br>
-  <h1>Forem 🌱</h1>
+  <h1>RoboMx <img src="https://avatars0.githubusercontent.com/u/46779915?s=200&v=4" width="60" /></h1>
   <strong>For Empowering Community</strong>
 </div>
 <br>
